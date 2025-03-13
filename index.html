@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Jadwal Sholat Indonesia</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: Arial, sans-serif;
+        }
+        body {
+            background-color: #121212;
+            color: #ffffff;
+            text-align: center;
+            padding: 20px;
+            transition: background-color 0.5s ease-in-out;
+        }
+        h1 {
+            margin-bottom: 20px;
+        }
+        select {
+            padding: 10px;
+            font-size: 16px;
+            margin-bottom: 20px;
+            border: none;
+            border-radius: 5px;
+            background: #222;
+            color: white;
+            cursor: pointer;
+            transition: background 0.3s ease-in-out;
+        }
+        select:hover {
+            background: #333;
+        }
+        .container {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 20px;
+            border-radius: 10px;
+            display: inline-block;
+            min-width: 250px;
+            transition: transform 0.5s ease-in-out, opacity 0.5s ease-in-out;
+        }
+        .hidden {
+            opacity: 0;
+            transform: translateY(20px);
+        }
+        .show {
+            opacity: 1;
+            transform: translateY(0);
+        }
+        table {
+            width: 100%;
+            margin-top: 10px;
+            border-collapse: collapse;
+        }
+        th, td {
+            padding: 10px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+    </style>
+</head>
+<body>
+    <h1>Jadwal Sholat Indonesia</h1>
+    <select id="citySelect">
+        <option value="1301">Jakarta</option>
+        <option value="1401">Bandung</option>
+        <option value="3601">Banten</option>
+        <option value="3273">Bogor</option>
+        <option value="3509">Surabaya</option>
+    </select>
+    
+    <div id="scheduleContainer" class="container hidden">
+        <h2 id="cityName"></h2>
+        <table>
+            <tr><th>Sholat</th><th>Waktu</th></tr>
+            <tr><td>Subuh</td><td id="subuh"></td></tr>
+            <tr><td>Dzuhur</td><td id="dzuhur"></td></tr>
+            <tr><td>Ashar</td><td id="ashar"></td></tr>
+            <tr><td>Maghrib</td><td id="maghrib"></td></tr>
+            <tr><td>Isya</td><td id="isya"></td></tr>
+        </table>
+    </div>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            const citySelect = document.getElementById("citySelect");
+            const cityName = document.getElementById("cityName");
+            const scheduleContainer = document.getElementById("scheduleContainer");
+
+            async function fetchPrayerTimes(cityCode, cityLabel) {
+                const today = new Date().toISOString().split('T')[0]; 
+                const url = `https://api.myquran.com/v1/sholat/jadwal/${cityCode}/${today}`;
+
+                try {
+                    const response = await fetch(url);
+                    const data = await response.json();
+                    
+                    if (data.status && data.data.jadwal) {
+                        const jadwal = data.data.jadwal;
+                        document.getElementById("subuh").textContent = jadwal.subuh;
+                        document.getElementById("dzuhur").textContent = jadwal.dzuhur;
+                        document.getElementById("ashar").textContent = jadwal.ashar;
+                        document.getElementById("maghrib").textContent = jadwal.maghrib;
+                        document.getElementById("isya").textContent = jadwal.isya;
+                        cityName.textContent = cityLabel;
+
+                        scheduleContainer.classList.remove("hidden");
+                        scheduleContainer.classList.add("show");
+                    }
+                } catch (error) {
+                    alert("Gagal mengambil data jadwal sholat.");
+                }
+            }
+
+            citySelect.addEventListener("change", function () {
+                const selectedOption = citySelect.options[citySelect.selectedIndex];
+                fetchPrayerTimes(selectedOption.value, selectedOption.text);
+            });
+
+            fetchPrayerTimes(citySelect.value, citySelect.options[citySelect.selectedIndex].text);
+        });
+    </script>
+</body>
+</html>
