@@ -1,0 +1,555 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Jadwal Sholat Indonesia</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.1.1/css/all.min.css">
+    <style>
+        :root {
+            --primary-color: #00b4d8;
+            --background-dark: #121212;
+            --card-dark: #1e1e1e;
+            --text-light: #f5f5f5;
+            --text-secondary: #b0b0b0;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background-color: var(--background-dark);
+            color: var(--text-light);
+            min-height: 100vh;
+            transition: all 0.3s ease;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 1rem;
+        }
+        
+        header {
+            text-align: center;
+            padding: 2rem 0;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 0.5rem;
+            background: linear-gradient(90deg, var(--primary-color), #48cae4);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            animation: fadeIn 1.5s ease;
+        }
+        
+        header p {
+            color: var(--text-secondary);
+            font-size: 1.1rem;
+            margin-bottom: 1.5rem;
+            animation: fadeIn 1.8s ease;
+        }
+        
+        .city-selector {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 1rem;
+            margin-bottom: 2rem;
+            animation: fadeIn 2s ease;
+        }
+        
+        .city-btn {
+            background-color: var(--card-dark);
+            color: var(--text-light);
+            border: none;
+            padding: 0.8rem 1.5rem;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 1rem;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        
+        .city-btn:hover {
+            background-color: var(--primary-color);
+            transform: translateY(-3px);
+        }
+        
+        .city-btn.active {
+            background-color: var(--primary-color);
+        }
+        
+        .prayer-card {
+            background-color: var(--card-dark);
+            border-radius: 15px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+            animation: slideUp 0.5s ease;
+            transition: all 0.3s ease;
+        }
+        
+        .date-info {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+        }
+        
+        .date-gregorian {
+            font-size: 1.5rem;
+            font-weight: 600;
+        }
+        
+        .date-hijri {
+            color: var(--text-secondary);
+            font-size: 1.2rem;
+        }
+        
+        .prayer-times {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 1.5rem;
+        }
+        
+        .prayer-item {
+            background-color: rgba(255, 255, 255, 0.05);
+            border-radius: 10px;
+            padding: 1.2rem;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            transition: all 0.3s ease;
+        }
+        
+        .prayer-item:hover {
+            transform: translateY(-5px);
+            background-color: rgba(255, 255, 255, 0.1);
+        }
+        
+        .prayer-name {
+            font-size: 1.2rem;
+            margin-bottom: 0.5rem;
+            color: var(--primary-color);
+        }
+        
+        .prayer-time {
+            font-size: 1.8rem;
+            font-weight: 700;
+        }
+        
+        .next-prayer {
+            background: linear-gradient(135deg, var(--primary-color), #48cae4);
+            color: white;
+        }
+        
+        .next-prayer .prayer-name {
+            color: white;
+        }
+        
+        .countdown {
+            margin-top: 0.5rem;
+            font-size: 0.9rem;
+            color: rgba(255, 255, 255, 0.8);
+        }
+        
+        .loading {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 200px;
+        }
+        
+        .loading::after {
+            content: "";
+            width: 50px;
+            height: 50px;
+            border: 5px solid #ffffff33;
+            border-top-color: var(--primary-color);
+            border-radius: 50%;
+            animation: loading 1s infinite linear;
+        }
+        
+        footer {
+            text-align: center;
+            padding: 2rem 0;
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+            margin-top: 2rem;
+        }
+        
+        footer a {
+            color: var(--primary-color);
+            text-decoration: none;
+        }
+        
+        .page {
+            opacity: 0;
+            transform: translateY(20px);
+            transition: opacity 0.5s ease, transform 0.5s ease;
+            display: none;
+        }
+        
+        .page.active {
+            opacity: 1;
+            transform: translateY(0);
+            display: block;
+        }
+        
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+            to {
+                opacity: 1;
+            }
+        }
+        
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(50px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        @keyframes loading {
+            0% {
+                transform: rotate(0deg);
+            }
+            100% {
+                transform: rotate(360deg);
+            }
+        }
+        
+        /* Responsive design */
+        @media (max-width: 768px) {
+            header h1 {
+                font-size: 2rem;
+            }
+            
+            .prayer-times {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .prayer-times {
+                grid-template-columns: 1fr;
+            }
+            
+            .date-info {
+                flex-direction: column;
+                gap: 0.5rem;
+                align-items: flex-start;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Jadwal Sholat Indonesia</h1>
+            <p>Jadwal sholat akurat berdasarkan data dari Kementerian Agama Republik Indonesia</p>
+        </header>
+        
+        <div class="city-selector" id="citySelector">
+            <!-- City buttons will be generated here -->
+        </div>
+        
+        <div id="prayerContent" class="page active">
+            <div id="prayerData" class="prayer-card">
+                <div class="loading"></div>
+            </div>
+        </div>
+        
+        <footer>
+            <p>&copy; 2025 Jadwal Sholat Indonesia | Data disediakan oleh API <a href="https://api.myquran.com" target="_blank">MyQuran.com</a></p>
+        </footer>
+    </div>
+
+    <script>
+        // List of major cities in Indonesia with their codes
+        const cities = [
+            { id: 1301, name: "Jakarta" },
+            { id: 1219, name: "Bandung" },
+            { id: 1320, name: "Banten" },
+            { id: 1214, name: "Surabaya" },
+            { id: 1502, name: "Makassar" },
+            { id: 1403, name: "Medan" },
+            { id: 1201, name: "Semarang" },
+            { id: 1603, name: "Palembang" },
+            { id: 1307, name: "Yogyakarta" },
+            { id: 1223, name: "Malang" }
+        ];
+
+        // Prayer names in Indonesian
+        const prayerNames = {
+            fajr: "Subuh",
+            sunrise: "Terbit",
+            dhuhr: "Dzuhur",
+            asr: "Ashar",
+            maghrib: "Maghrib",
+            isha: "Isya"
+        };
+
+        // Current date and time
+        let now = new Date();
+        let selectedCity = { id: 1301, name: "Jakarta" }; // Default to Jakarta
+        
+        // Initialize the app
+        document.addEventListener('DOMContentLoaded', () => {
+            createCityButtons();
+            loadPrayerTimes(selectedCity.id);
+            
+            // Update clock and countdown every second
+            setInterval(updateTimeAndCountdown, 1000);
+        });
+        
+        // Create city selection buttons
+        function createCityButtons() {
+            const citySelector = document.getElementById('citySelector');
+            citySelector.innerHTML = '';
+            
+            cities.forEach(city => {
+                const button = document.createElement('button');
+                button.classList.add('city-btn');
+                if (city.id === selectedCity.id) {
+                    button.classList.add('active');
+                }
+                button.textContent = city.name;
+                button.addEventListener('click', () => {
+                    // Remove active class from all buttons
+                    document.querySelectorAll('.city-btn').forEach(btn => {
+                        btn.classList.remove('active');
+                    });
+                    
+                    // Add active class to clicked button
+                    button.classList.add('active');
+                    
+                    // Update selected city and reload data
+                    selectedCity = city;
+                    loadPrayerTimes(city.id);
+                });
+                
+                citySelector.appendChild(button);
+            });
+        }
+        
+        // Load prayer times from the API
+        async function loadPrayerTimes(cityId) {
+            const prayerData = document.getElementById('prayerData');
+            prayerData.innerHTML = '<div class="loading"></div>';
+            
+            try {
+                // Get current date in YYYY/MM format
+                const year = now.getFullYear();
+                const month = (now.getMonth() + 1).toString().padStart(2, '0');
+                const date = now.getDate().toString().padStart(2, '0');
+                
+                // Fetch prayer times from MyQuran API
+                const response = await fetch(`https://api.myquran.com/v1/sholat/jadwal/${cityId}/${year}/${month}/${date}`);
+                const data = await response.json();
+                
+                if (data.status) {
+                    renderPrayerTimes(data.data);
+                } else {
+                    prayerData.innerHTML = `<p>Error: ${data.message || 'Failed to load prayer times'}</p>`;
+                }
+            } catch (error) {
+                prayerData.innerHTML = `<p>Error: ${error.message || 'Failed to load prayer times'}</p>`;
+            }
+        }
+        
+        // Render prayer times
+        function renderPrayerTimes(data) {
+            const prayerData = document.getElementById('prayerData');
+            
+            // Create date information
+            const dateInfo = document.createElement('div');
+            dateInfo.classList.add('date-info');
+            
+            const dateGregorian = document.createElement('div');
+            dateGregorian.classList.add('date-gregorian');
+            dateGregorian.textContent = `${data.jadwal.tanggal}`;
+            
+            const dateHijri = document.createElement('div');
+            dateHijri.classList.add('date-hijri');
+            // Convert to Hijri date using API data if available, or approximate
+            const hijriDate = data.jadwal.date_hijri || approximateHijriDate();
+            dateHijri.textContent = hijriDate;
+            
+            dateInfo.appendChild(dateGregorian);
+            dateInfo.appendChild(dateHijri);
+            
+            // Create prayer times grid
+            const prayerTimes = document.createElement('div');
+            prayerTimes.classList.add('prayer-times');
+            
+            // Extract prayer times from data
+            const times = {
+                fajr: data.jadwal.subuh,
+                sunrise: data.jadwal.terbit,
+                dhuhr: data.jadwal.dzuhur,
+                asr: data.jadwal.ashar,
+                maghrib: data.jadwal.maghrib,
+                isha: data.jadwal.isya
+            };
+            
+            // Find next prayer
+            const nextPrayer = findNextPrayer(times);
+            
+            // Create prayer time items
+            for (const [key, time] of Object.entries(times)) {
+                const prayerItem = document.createElement('div');
+                prayerItem.classList.add('prayer-item');
+                
+                if (key === nextPrayer) {
+                    prayerItem.classList.add('next-prayer');
+                }
+                
+                const prayerName = document.createElement('div');
+                prayerName.classList.add('prayer-name');
+                prayerName.textContent = prayerNames[key];
+                
+                const prayerTime = document.createElement('div');
+                prayerTime.classList.add('prayer-time');
+                prayerTime.textContent = time;
+                
+                prayerItem.appendChild(prayerName);
+                prayerItem.appendChild(prayerTime);
+                
+                if (key === nextPrayer) {
+                    const countdown = document.createElement('div');
+                    countdown.classList.add('countdown');
+                    countdown.id = 'countdown';
+                    prayerItem.appendChild(countdown);
+                }
+                
+                prayerTimes.appendChild(prayerItem);
+            }
+            
+            // Clear and add new content
+            prayerData.innerHTML = '';
+            prayerData.appendChild(dateInfo);
+            prayerData.appendChild(prayerTimes);
+            
+            // Initial update of countdown
+            updateTimeAndCountdown();
+        }
+        
+        // Find the next prayer time
+        function findNextPrayer(times) {
+            const currentTime = formatTime(now);
+            
+            const prayers = [
+                { name: 'fajr', time: times.fajr },
+                { name: 'sunrise', time: times.sunrise },
+                { name: 'dhuhr', time: times.dhuhr },
+                { name: 'asr', time: times.asr },
+                { name: 'maghrib', time: times.maghrib },
+                { name: 'isha', time: times.isha }
+            ];
+            
+            // Sort prayers by time
+            prayers.sort((a, b) => {
+                return timeToMinutes(a.time) - timeToMinutes(b.time);
+            });
+            
+            // Find next prayer
+            for (const prayer of prayers) {
+                if (timeToMinutes(currentTime) < timeToMinutes(prayer.time)) {
+                    return prayer.name;
+                }
+            }
+            
+            // If all prayers have passed, return first prayer of next day
+            return 'fajr';
+        }
+        
+        // Update time and countdown every second
+        function updateTimeAndCountdown() {
+            now = new Date();
+            
+            const countdown = document.getElementById('countdown');
+            if (!countdown) return;
+            
+            const prayerData = document.querySelector('.prayer-card');
+            if (!prayerData) return;
+            
+            const nextPrayerElement = document.querySelector('.next-prayer');
+            if (!nextPrayerElement) return;
+            
+            const nextPrayerTime = nextPrayerElement.querySelector('.prayer-time').textContent;
+            const nextPrayerName = nextPrayerElement.querySelector('.prayer-name').textContent;
+            
+            // Calculate time difference
+            const currentTimeMinutes = now.getHours() * 60 + now.getMinutes();
+            const nextPrayerMinutes = timeToMinutes(nextPrayerTime);
+            
+            let diffMinutes = nextPrayerMinutes - currentTimeMinutes;
+            
+            // If negative, it means the next prayer is tomorrow
+            if (diffMinutes < 0) {
+                diffMinutes += 24 * 60; // Add one day
+            }
+            
+            const hours = Math.floor(diffMinutes / 60);
+            const minutes = diffMinutes % 60;
+            const seconds = 59 - now.getSeconds();
+            
+            countdown.textContent = `${hours}j ${minutes}m ${seconds}d menuju ${nextPrayerName}`;
+            
+            // If it's a new day, reload the prayer times
+            if (now.getHours() === 0 && now.getMinutes() === 0 && now.getSeconds() === 0) {
+                loadPrayerTimes(selectedCity.id);
+            }
+        }
+        
+        // Helper function to convert time string to minutes
+        function timeToMinutes(timeStr) {
+            const [hours, minutes] = timeStr.split(':').map(Number);
+            return hours * 60 + minutes;
+        }
+        
+        // Helper function to format current time as HH:MM
+        function formatTime(date) {
+            const hours = date.getHours().toString().padStart(2, '0');
+            const minutes = date.getMinutes().toString().padStart(2, '0');
+            return `${hours}:${minutes}`;
+        }
+        
+        // Helper function to approximate Hijri date
+        function approximateHijriDate() {
+            // This is a simple approximation, for accurate Hijri date an API should be used
+            const timestamp = now.getTime();
+            // Approximate difference between Gregorian and Hijri calendars (about 622 years)
+            const hijriYear = Math.floor(now.getFullYear() - 622);
+            
+            // Get Hijri month and day (this is very approximate)
+            const hijriMonth = now.getMonth() + 1;
+            const hijriDay = now.getDate();
+            
+            // Hijri month names
+            const hijriMonths = [
+                "Muharram", "Safar", "Rabiul Awal", "Rabiul Akhir",
+                "Jumadil Awal", "Jumadil Akhir", "Rajab", "Sya'ban",
+                "Ramadhan", "Syawal", "Dzulkaidah", "Dzulhijjah"
+            ];
+            
+            return `${hijriDay} ${hijriMonths[hijriMonth - 1]} ${hijriYear} H`;
+        }
+    </script>
+</body>
+</html>
