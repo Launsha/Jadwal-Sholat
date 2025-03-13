@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Jadwal Sholat Indonesia</title>
+    <style>
+        /* Tema Gelap */
+        body {
+            background-color: #121212;
+            color: #ffffff;
+            font-family: 'Arial', sans-serif;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        .container {
+            text-align: center;
+            background-color: #1e1e1e;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
+            max-width: 400px;
+            width: 100%;
+        }
+
+        h1 {
+            font-size: 24px;
+            margin-bottom: 20px;
+        }
+
+        select {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 20px;
+            border-radius: 5px;
+            border: none;
+            background-color: #333;
+            color: #fff;
+            font-size: 16px;
+        }
+
+        .schedule {
+            text-align: left;
+        }
+
+        .schedule div {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px 0;
+            border-bottom: 1px solid #444;
+        }
+
+        .schedule div:last-child {
+            border-bottom: none;
+        }
+
+        /* Animasi Smooth */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .container {
+            animation: fadeIn 1s ease-in-out;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Jadwal Sholat Indonesia</h1>
+        <select id="citySelect">
+            <option value="Jakarta">Jakarta</option>
+            <option value="Bandung">Bandung</option>
+            <option value="Banten">Banten</option>
+            <option value="Surabaya">Surabaya</option>
+            <option value="Yogyakarta">Yogyakarta</option>
+        </select>
+        <div class="schedule" id="schedule"></div>
+    </div>
+
+    <script>
+        const apiUrl = "https://api.aladhan.com/v1/timingsByCity";
+        const citySelect = document.getElementById("citySelect");
+        const scheduleDiv = document.getElementById("schedule");
+
+        const cities = {
+            Jakarta: { city: "Jakarta", country: "Indonesia" },
+            Bandung: { city: "Bandung", country: "Indonesia" },
+            Banten: { city: "Serang", country: "Indonesia" },
+            Surabaya: { city: "Surabaya", country: "Indonesia" },
+            Yogyakarta: { city: "Yogyakarta", country: "Indonesia" }
+        };
+
+        async function getPrayerTimes(city) {
+            const { city: cityName, country } = cities[city];
+            const response = await fetch(`${apiUrl}?city=${cityName}&country=${country}&method=2`);
+            const data = await response.json();
+            return data.data.timings;
+        }
+
+        function displayPrayerTimes(timings) {
+            scheduleDiv.innerHTML = `
+                <div><strong>Subuh:</strong> ${timings.Fajr}</div>
+                <div><strong>Dzuhur:</strong> ${timings.Dhuhr}</div>
+                <div><strong>Ashar:</strong> ${timings.Asr}</div>
+                <div><strong>Maghrib:</strong> ${timings.Maghrib}</div>
+                <div><strong>Isya:</strong> ${timings.Isha}</div>
+            `;
+        }
+
+        async function updateSchedule() {
+            const selectedCity = citySelect.value;
+            const timings = await getPrayerTimes(selectedCity);
+            displayPrayerTimes(timings);
+        }
+
+        citySelect.addEventListener("change", updateSchedule);
+
+        // Initial load
+        updateSchedule();
+    </script>
+</body>
+</html>
